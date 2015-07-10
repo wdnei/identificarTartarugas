@@ -22,9 +22,11 @@ args = vars(ap.parse_args())
 index = {}
 images = {}
 
+histNumBins=[64,64,64]
+
 
 # loop over the image paths
-for imagePath in glob.glob(args["dataset"] + "/*[0-9].jpg"):
+for imagePath in glob.glob(args["dataset"] + "/*/*[0-9].jpg"):
 	# extract the image filename (assumed to be unique) and
 	# load the image, updating the images dictionary
 	filename = imagePath.split("\\")[-1]
@@ -34,7 +36,7 @@ for imagePath in glob.glob(args["dataset"] + "/*[0-9].jpg"):
 	# extract a 3D RGB color histogram from the image,
 	# using 8 bins per channel, normalize, and update
 	# the index
-	hist = cv2.calcHist([image], [0, 1, 2], None, [8, 8, 8],
+	hist = cv2.calcHist([image], [0, 1, 2], None, histNumBins,
 		[0, 256, 0, 256, 0, 256])
 	hist = cv2.normalize(hist).flatten()
 	index[filename] = hist
@@ -44,7 +46,7 @@ for imagePath in glob.glob(args["dataset"] + "/*[0-9].jpg"):
 #initialize query image
 mainImage= cv2.imread(args["image"])
 mainImage=cv2.cvtColor(mainImage, cv2.COLOR_BGR2RGB)
-mainHist = cv2.calcHist([mainImage], [0, 1, 2], None, [8, 8, 8],[0, 256, 0, 256, 0, 256])
+mainHist = cv2.calcHist([mainImage], [0, 1, 2], None, histNumBins,[0, 256, 0, 256, 0, 256])
 mainHist = cv2.normalize(hist).flatten()
 
 
@@ -75,7 +77,7 @@ for (methodName, method) in OPENCV_METHODS:
 		results[name] = d
 
 	# sort the results
-	results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
+	results = sorted([(v, k) for (k, v) in results.iteritems()], reverse = reverse)
 
 	# show the query image
 	fig = plt.figure("Query")

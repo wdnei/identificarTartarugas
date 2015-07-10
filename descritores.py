@@ -15,7 +15,19 @@ class HistogramaColoridoRGB:
                     Keyword arguments:
                     numBins -- Quantidade de Celulas (Padrao 256)
                  """
-                self.numBins=numBins                
+                self.numBins=numBins
+
+        def set_numBins(self,numBins):
+                self.numBins=numBins
+
+        def get_histograma3D(self,imagem):
+                """Retorna o histogram completo da image RGB
+        
+                    Keyword arguments:
+                    imagem -- imagem a ser transformada em hitograma
+                    return -- histograma 3D
+                 """
+                return cv2.calcHist([imagem], [0, 1, 2], None,[self.numBins,self.numBins,self.numBins],[0, 256, 0, 256, 0, 256]).flatten()
 
         def get_histograma(self,imagem):
                 """Retorna o histogram completo da image RGB
@@ -24,8 +36,15 @@ class HistogramaColoridoRGB:
                     imagem -- imagem a ser transformada em hitograma
                     return -- histograma 3D
                  """
-                return cv2.calcHist([imagem], [0, 1, 2], None,[self.numBins,self.numBins,self.numBins],[0, 256, 0, 256, 0, 256])
+                result=[]
+                hist_r=cv2.calcHist([imagem], [0], None,[self.numBins],[0, 256])
+                hist_g=cv2.calcHist([imagem], [1], None,[self.numBins],[0, 256])
+                hist_b=cv2.calcHist([imagem], [2], None,[self.numBins],[0, 256])
+                result=np.append(result,[hist_r,hist_g,hist_b])
+                return result
+
         
+
         def normalizar_hitograma(self,hist):
                 return cv2.normalize(hist)
 
@@ -36,13 +55,13 @@ class HistogramaColoridoRGB:
                 """Descreve o histograma no metodo proposto
         
                     Keyword arguments:
-                    imagem -- imagem criada por imread(src) padrao BGR opencv
+                    imagem -- imagem criada por imread(src) padrao RGB opencv
                     return -- [Media,Variancia,Curtose,Energia,Entropia] para cada canal
                  """
-                result=[]
-                hist_r=cv2.calcHist([imagem], [2], None,[self.numBins],[0, 256])
+                result={}
+                hist_r=cv2.calcHist([imagem], [0], None,[self.numBins],[0, 256])
                 hist_g=cv2.calcHist([imagem], [1], None,[self.numBins],[0, 256])
-                hist_b=cv2.calcHist([imagem], [0], None,[self.numBins],[0, 256])
+                hist_b=cv2.calcHist([imagem], [2], None,[self.numBins],[0, 256])
                 #Dimensoes da Imagem
                 N, M = imagem.shape[:2]
                 #Media
@@ -66,7 +85,7 @@ class HistogramaColoridoRGB:
                         media_g+=index*p_g[index]
                         media_b+=index*p_b[index]
 
-                result.append([media_r,media_g,media_b])
+                result["media"]=(media_r,media_g,media_b)
 
                 #Variancia
                 variancia_r=0
@@ -79,7 +98,7 @@ class HistogramaColoridoRGB:
                         variancia_g+=math.pow((index-media_g),2)*p_g[index]
                         variancia_b+=math.pow((index-media_b),2)*p_b[index]
 
-                result.append([variancia_r,variancia_g,variancia_b])
+                result["variancia"]=(variancia_r,variancia_g,variancia_b)
                 #Curtose
                 curtose_r=0
                 curtose_g=0
@@ -94,7 +113,7 @@ class HistogramaColoridoRGB:
                 curtose_r=math.pow(variancia_r,-8)*curtose_r
                 curtose_g=math.pow(variancia_g,-8)*curtose_g
                 curtose_b=math.pow(variancia_b,-8)*curtose_b
-                result.append([curtose_r,curtose_g,curtose_b])
+                result["curtose"]=(curtose_r,curtose_g,curtose_b)
                 #Energia
                 energia_r=0
                 energia_g=0
@@ -105,7 +124,7 @@ class HistogramaColoridoRGB:
                         energia_g+=math.pow(p_g[index],2)
                         energia_b+=math.pow(p_b[index],2)
 
-                result.append([energia_r,energia_g,energia_b])
+                result["energia"]=(energia_r,energia_g,energia_b)
                 #Entropia
                 entropia_r=0
                 entropia_g=0
@@ -120,7 +139,7 @@ class HistogramaColoridoRGB:
                 entropia_r=-entropia_r
                 entropia_g=-entropia_g
                 entropia_b=-entropia_b
-                result.append([entropia_r,entropia_g,entropia_b])
+                result["entropia"]=(entropia_r,entropia_g,entropia_b)
 
                 return result
 
