@@ -5,7 +5,6 @@ import cPickle
 import glob
 import argparse
 
-
 def chi2_distance(histA, histB, eps = 1e-10):
 		# compute the chi-squared distance
 		d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
@@ -47,10 +46,10 @@ for imagePath in glob.glob(args["dataset"] + "/*/*[0-9].jpg"):
 	# extract a 3D RGB color histogram from the image,
 	# using 8 bins per channel, normalize, and update
 	# the index
-	hist = cv2.calcHist([image],[0,1],None,[180,256],ranges)
-	cv2.normalize(hist,hist,0,255,cv2.NORM_MINMAX)
-	index[filename] = hist
-	print filename
+	hist = cv2.calcHist([image],[0,1],None,[180,256],ranges).flatten()
+	histNorm=cv2.normalize(hist, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX)
+	index[filename] = histNorm
+	print filename,len(histNorm)
 
 
 out = open('trainIndex.dmp', 'wb')

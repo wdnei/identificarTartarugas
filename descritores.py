@@ -7,85 +7,93 @@ import argparse
 import math
 
 
-class HistogramaColoridoRGB:
+class HistogramaColoridoRGB:        
 
-        def __init__(self,numBins=256):
-                """Inicializar um Hitograma de cor
-
-                    Keyword arguments:
-                    numBins -- Quantidade de Celulas (Padrao 256)
-                 """
-                self.numBins=numBins
-
-        def set_numBins(self,numBins):
-                self.numBins=numBins
-
-        def get_histograma3D(self,imagem):
-                """Retorna o histogram completo da image RGB
+        @staticmethod
+        def chi2_distance(histA, histB, eps = 1e-10):
+		# compute the chi-squared distance
+		d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
+			for (a, b) in zip(histA, histB)])
+ 
+		# return the chi-squared distance
+		return d
+        @staticmethod
+        def get_histograma3D(filename,numBins):
+                """Retorna o histogram 3D completo da image RGB
         
                     Keyword arguments:
                     imagem -- imagem a ser transformada em hitograma
                     return -- histograma 3D
                  """
-                return cv2.calcHist([imagem], [0, 1, 2], None,[self.numBins,self.numBins,self.numBins],[0, 256, 0, 256, 0, 256]).flatten()
+                imagem = cv2.imread(filename)
+                imagem= cv2.cvtColor(imagem, cv2.COLOR_BGR2HSV)
+                return cv2.calcHist([imagem], [0, 1, 2], None,[numBins,numBins,numBins],[0, 256, 0, 256, 0, 256]).flatten()
 
-        def get_histograma(self,imagem):
-                """Retorna o histogram completo da image RGB
+        @staticmethod
+        def get_histograma(filename,numBins):
+                """Retorna o histogram 1D de cada canal(R,G,B) concatenado em um unico vetor completo da image RGB
         
                     Keyword arguments:
                     imagem -- imagem a ser transformada em hitograma
-                    return -- histograma 3D
+                    return -- histograma 1
                  """
+                imagem = cv2.imread(filename)
+                imagem = cv2.cvtColor(imagem, cv2.COLOR_BGR2HSV)
                 result=[]
-                hist_r=cv2.calcHist([imagem], [0], None,[self.numBins],[0, 256])
-                hist_g=cv2.calcHist([imagem], [1], None,[self.numBins],[0, 256])
-                hist_b=cv2.calcHist([imagem], [2], None,[self.numBins],[0, 256])
+                hist_r=cv2.calcHist([imagem], [0], None,[numBins],[0, 256])
+                hist_g=cv2.calcHist([imagem], [1], None,[numBins],[0, 256])
+                hist_b=cv2.calcHist([imagem], [2], None,[numBins],[0, 256])
                 result=np.append(result,[hist_r,hist_g,hist_b])
                 return result
 
         
 
-        def normalizar_hitograma(self,hist):
+        @staticmethod
+        def normalizar_hitograma(hist):
                 return cv2.normalize(hist)
 
-        def densidade_probabilidade(self,valor,N,M):
+        @staticmethod
+        def densidade_probabilidade(valor,N,M):
                 return valor/(N*M)
 
-        def descrever(self,imagem):
-                """Descreve o histograma no metodo proposto
+        @staticmethod
+        def descrever_estatistico(filename,numBins):
+                """Descreve o histograma usando metodos estatisticos
         
                     Keyword arguments:
                     imagem -- imagem criada por imread(src) padrao RGB opencv
                     return -- [Media,Variancia,Curtose,Energia,Entropia] para cada canal
                  """
-                result={}
-                hist_r=cv2.calcHist([imagem], [0], None,[self.numBins],[0, 256])
-                hist_g=cv2.calcHist([imagem], [1], None,[self.numBins],[0, 256])
-                hist_b=cv2.calcHist([imagem], [2], None,[self.numBins],[0, 256])
+                imagem = cv2.imread(filename)
+                imagem = cv2.cvtColor(imagem, cv2.COLOR_BGR2HSV)
+                result=[]
+                hist_r=cv2.calcHist([imagem], [0], None,[numBins],[0, 256])
+                hist_g=cv2.calcHist([imagem], [1], None,[numBins],[0, 256])
+                hist_b=cv2.calcHist([imagem], [2], None,[numBins],[0, 256])
                 #Dimensoes da Imagem
                 N, M = imagem.shape[:2]
-                #Media
-                media_r=0
-                media_g=0
-                media_b=0
+               
 
                 #densidade de probabilidade
                 #RED
                 p_r=[]
                 p_g=[]
                 p_b=[]
-                for index in range(0,self.numBins):
-                        p_r.append(self.densidade_probabilidade(hist_r[index],N,M))
-                        p_g.append(self.densidade_probabilidade(hist_g[index],N,M))
-                        p_b.append(self.densidade_probabilidade(hist_b[index],N,M))
+                for index in range(0,numBins):
+                        p_r.append(HistogramaColoridoRGB.densidade_probabilidade(hist_r[index],N,M))
+                        p_g.append(HistogramaColoridoRGB.densidade_probabilidade(hist_g[index],N,M))
+                        p_b.append(HistogramaColoridoRGB.densidade_probabilidade(hist_b[index],N,M))
                 
-
-                for index in range(0,self.numBins):   # default is zero
+                 #Media
+                media_r=0
+                media_g=0
+                media_b=0
+                for index in range(0,numBins):   # default is zero
                         media_r+=index*p_r[index]
                         media_g+=index*p_g[index]
                         media_b+=index*p_b[index]
 
-                result["media"]=(media_r,media_g,media_b)
+                result.extend([media_r,media_g,media_b])
 
                 #Variancia
                 variancia_r=0
@@ -93,19 +101,19 @@ class HistogramaColoridoRGB:
                 variancia_b=0
                 
 
-                for index in range(0,self.numBins):   # default is zero
+                for index in range(0,numBins):   # default is zero
                         variancia_r+=math.pow((index-media_r),2)*p_r[index]
                         variancia_g+=math.pow((index-media_g),2)*p_g[index]
                         variancia_b+=math.pow((index-media_b),2)*p_b[index]
 
-                result["variancia"]=(variancia_r,variancia_g,variancia_b)
+                result.extend([variancia_r,variancia_g,variancia_b])
                 #Curtose
                 curtose_r=0
                 curtose_g=0
                 curtose_b=0
                 
 
-                for index in range(0,self.numBins):   # default is zero
+                for index in range(0,numBins):   # default is zero
                         curtose_r+=(math.pow((index-media_r),4)*p_r[index])-3
                         curtose_g+=(math.pow((index-media_g),4)*p_g[index])-3
                         curtose_b+=(math.pow((index-media_b),4)*p_b[index])-3
@@ -113,24 +121,24 @@ class HistogramaColoridoRGB:
                 curtose_r=math.pow(variancia_r,-8)*curtose_r
                 curtose_g=math.pow(variancia_g,-8)*curtose_g
                 curtose_b=math.pow(variancia_b,-8)*curtose_b
-                result["curtose"]=(curtose_r,curtose_g,curtose_b)
+                result.extend([curtose_r,curtose_g,curtose_b])
                 #Energia
                 energia_r=0
                 energia_g=0
                 energia_b=0
 
-                for index in range(0,self.numBins):   # default is zero
+                for index in range(0,numBins):   # default is zero
                         energia_r+=math.pow(p_r[index],2)
                         energia_g+=math.pow(p_g[index],2)
                         energia_b+=math.pow(p_b[index],2)
 
-                result["energia"]=(energia_r,energia_g,energia_b)
+                result.extend([energia_r,energia_g,energia_b])
                 #Entropia
                 entropia_r=0
                 entropia_g=0
                 entropia_b=0
 
-                for index in range(0,self.numBins):   # default is zero
+                for index in range(0,numBins):   # default is zero
                         entropia_r+=0 if p_r[index]<=0 else p_r[index]*(math.log(p_r[index],2))
                         entropia_g+=0 if p_g[index]<=0 else p_g[index]*(math.log(p_g[index],2))
                         entropia_b+=0 if p_b[index]<=0 else p_b[index]*(math.log(p_b[index],2))
@@ -139,12 +147,33 @@ class HistogramaColoridoRGB:
                 entropia_r=-entropia_r
                 entropia_g=-entropia_g
                 entropia_b=-entropia_b
-                result["entropia"]=(entropia_r,entropia_g,entropia_b)
+                result.extend([entropia_r,entropia_g,entropia_b])
 
                 return result
 
+        @staticmethod
+        def comparar(histA,histB):
+                return HistogramaColoridoRGB.chi2_distance(histA,histB)
+                
 
 
+class MomentosCromaticidade:
+        @staticmethod
+        def get_momento_t(filename,m,l):
+                return 0
+
+        @staticmethod
+        def get_momento_d(filename,m,l):
+                return 0
+
+
+        @staticmethod
+        def descrever(filename,num_m,num_l):
+                return 0
+
+        @staticmethod
+        def comparar:
+                return 0
 
 
 

@@ -9,7 +9,7 @@ def chi2_distance(histA, histB, eps = 1e-10):
 		# compute the chi-squared distance
 		d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
 			for (a, b) in zip(histA, histB)])
- 
+
 		# return the chi-squared distance
 		return d
 
@@ -44,8 +44,8 @@ ranges = hrange+srange
 mainImagePath=args["image"]
 mainImage= cv2.imread(mainImagePath)
 mainImage=cv2.cvtColor(mainImage, cv2.COLOR_BGR2HSV)
-mainHist =cv2.calcHist([mainImage],[0,1],None,[180,256],ranges)
-cv2.normalize(mainHist,mainHist,0,255,cv2.NORM_MINMAX)
+mainHist =cv2.calcHist([mainImage],[0,1],None,[180,256],ranges).flatten()
+mainHistNorm=index[".\samples\carettacaretta\carettacaretta_1.jpg"]#cv2.normalize(mainHist, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX)
 print mainHist
 
 
@@ -53,7 +53,7 @@ print mainHist
 OPENCV_METHODS = (
 	("Correlation", cv2.cv.CV_COMP_CORREL),
 	("Chi-Squared", cv2.cv.CV_COMP_CHISQR),
-	("Intersection", cv2.cv.CV_COMP_INTERSECT), 
+	("Intersection", cv2.cv.CV_COMP_INTERSECT),
 	("BHATTACHARYYA", cv2.cv.CV_COMP_BHATTACHARYYA))
 
 # loop over the comparison methods
@@ -61,14 +61,14 @@ for (methodName, method) in OPENCV_METHODS:
         histReport="""<html>
         <head>
         </head>
-        
+
         <body><div style=\"border:1px solid black; height:90px\">
                         <div style=\"float:left; padding-right:5px;\">
                         <img src=\""""+mainImagePath+"""\"/>
                         </div>
                         <div>
                         <p>Query Image:"""+mainImagePath+"""</p>
-                        
+
                 </span>
                         </div>
                 </div><\br>"""
@@ -86,7 +86,7 @@ for (methodName, method) in OPENCV_METHODS:
         for (name, hist) in index.items():
                 # compute the distance between the two histograms
                 # using the method and update the results dictionary
-                d = cv2.compareHist(hist, mainHist, method)
+                d = cv2.compareHist(mainHistNorm, hist, method)
                 results[name] = d
 
         # sort the results
@@ -94,7 +94,7 @@ for (methodName, method) in OPENCV_METHODS:
 
 
         # loop over the results
-        for (i, (value, name)) in enumerate(results):
+        for (i,(value, name)) in enumerate(results):
                 # show the result
                 print  methodName ,name
                 histText=""
@@ -116,6 +116,3 @@ for (methodName, method) in OPENCV_METHODS:
         text_file = open(".\\relatorios\\"+methodName+".html", "w")
         text_file.write(histReport)
         text_file.close()
-
-
-
