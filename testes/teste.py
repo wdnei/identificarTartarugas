@@ -2,48 +2,75 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import pickle
-import descritores as d
 import glob
-
-
-
-out=open("hist1.dmp","rb")
-index=pickle.load(out)
-out.close()
-
-imageName=".\samples\carettacaretta\carettacaretta_4.jpg"
-image1=cv2.imread(imageName)
-image1=cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
-
-image3=cv2.imread(".\samples\carettacaretta\carettacaretta_1.jpg")
-image3=cv2.cvtColor(image3, cv2.COLOR_BGR2HSV)
-
-
-hist1=cv2.calcHist([image1], [0,1,2], None, [64,64,64],
-		[0, 256,0, 256,0,256]).flatten()
-#hist1=cv2.normalize(hist1, alpha=0, beta=255, norm_type=cv2.cv.CV_MINMAX)
+import itertools
 
 
 
 
-d=cv2.compareHist(hist1, index[imageName], cv2.cv.CV_COMP_CORREL)
-print d
-quit()
-
-OPENCV_METHODS = (
-	("Correlation", cv2.cv.CV_COMP_CORREL),
-	("Chi-Squared", cv2.cv.CV_COMP_CHISQR),
-	("Intersection", cv2.cv.CV_COMP_INTERSECT), 
-	("BHATTACHARYYA", cv2.cv.CV_COMP_BHATTACHARYYA))
-resultsCHI={}
-# loop over the comparison methods
-for name in index.keys():
-                d = cv2.compareHist(hist1, index[name], cv2.cv.CV_COMP_CORREL)
-                resultsCHI[name]=d
-                print name, d
+imageName="..\samples\carettacaretta\carettacaretta_4.jpg"
+image=cv2.imread(imageName)
+image=cv2.cvtColor(image, cv2.COLOR_BGR2XYZ)
 
 
 
+rows,cols,dimensions=image.shape
+#criar a matriz que receberah as coordenadas xy, ou seja, 2 dimensoes
+xy_space_result=[ [ 0 for i in range(rows) ] for j in range(cols) ]
+for i in range(rows):
+    for j in range(cols):
+        X,Y,Z = image[i,j]
+        soma_XYZ=int(X)+int(Y)+int(Z)
+        #x do diagrama de cromaticidade
+        x_c=float(X)/soma_XYZ
+        #y do diagrama de cromaticidade
+        y_c=float(Y)/soma_XYZ
+        xy_space_result[i][j]=[x_c,y_c]
+        
 
+#xy_space_result=np.reshape(xy_space_result,[rows,cols,2])
+X,Y,Z=image[50,50]
+print(type(X))
+soma_XYZ=int(X)+int(Y)+int(Z)
+#x do diagrama de cromaticidade
+x_c=float(X)/soma_XYZ
+#y do diagrama de cromaticidade
+y_c=float(Y)/soma_XYZ
+xy_space_result=np.array(xy_space_result,dtype=float)
+xy_space_result*=100
+xy_space_result=xy_space_result.astype(np.uint8)
+print xy_space_result.dtype
+hist=cv2.calcHist([xy_space_result], [0,1], None,[100,100],[0, 100,0,100])
+hist=hist.astype(int)
+hist_custom=[ [ 0 for i in range(100) ] for j in range(100) ]
+
+rows,cols,dimensions=xy_space_result.shape
+for i in range(rows):
+    for j in range(cols):
+        x,y=xy_space_result[i,j]
+        hist_custom[x][y]+=1
+
+
+hist_custom=np.array(hist_custom,dtype=int)
+print len(hist)
+for i in range(len(hist_custom)):
+    print hist_custom[i]
+
+print np.array_equal(hist,hist_custom)
+print image[50,50],xy_space_result[50][50],X,Y,Z,soma_XYZ,x_c,y_c
+qtxMax=0
+
+a=[[0,0]]
+for i in range(int(qtxMax/2)+1):
+    for j in range(i):
+        if(len(a)<qtxMax):
+            a.append([i,j])
+        if(len(a)<qtxMax):
+            a.append([j,i])
+    
+    if(len(a)>=qtxMax):
+            break
+
+print a
                 
         

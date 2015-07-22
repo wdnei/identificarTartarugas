@@ -9,13 +9,7 @@ import descritores as desc
 #Inicializar Descritor RGB
 descRGB =desc.HistogramaColoridoRGB
 
-def chi2_distance(histA, histB, eps = 1e-10):
-		# compute the chi-squared distance
-		d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
-			for (a, b) in zip(histA, histB)])
- 
-		# return the chi-squared distance
-		return d
+
 
 
 # construct the argument parser and parse the arguments
