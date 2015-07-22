@@ -5,11 +5,10 @@ import cPickle
 import glob
 import argparse
 import webbrowser
-
-from descritores import HistogramaColoridoRGB
+from descritores import MomentosCromaticidade
 
 #Inicializar Descritor RGB
-descRGB=HistogramaColoridoRGB
+descMC=MomentosCromaticidade
 
 def chi2_distance(histA, histB, eps = 1e-10):
 		# compute the chi-squared distance
@@ -25,6 +24,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--datatrained", required = True,help = "Path to the directory of images")
 ap.add_argument("-i", "--image", required = True,help = "PathName of Image to be compared")
 ap.add_argument("-o","--open", action='store_true',required = False,help = "Open Query in Browser")
+
 args = vars(ap.parse_args())
 
 # initialize the index dictionary to store the image name
@@ -42,9 +42,9 @@ histNumBins=256
 #nova imagem
 #initialize query image
 mainImagePath=args["image"]
-mainHist= descRGB.get_histograma(mainImagePath,histNumBins)
+mainCarac= descMC.descrever(mainImagePath,5,5)
 
-print len(mainHist)
+print len(mainCarac)
 
 
 # initialize OpenCV methods for histogram comparison
@@ -54,8 +54,9 @@ methodName="Chi-Squared"
 histReport="""<html> <head> </head>
 
 <body>
-<h1>Query Usando Histogramas Coloridos</h1>
+<h1>Query Usando Momentos de Cromaticidade</h1>
 <div style=\"border:1px solid black; height:90px\">
+                                
 				<div style=\"float:left; padding-right:5px;\">
 				<img src=\""""+mainImagePath+"""\"/>
 				</div>
@@ -76,10 +77,10 @@ if methodName in ("Correlation", "Intersection"):
 		reverse = True
 
 # loop over the index
-for (name, hist) in index.items():
+for (name, vecCarac) in index.items():
 		# compute the distance between the two histograms
 		# using the method and update the results dictionary
-		d = descRGB.comparar(mainHist, hist)
+		d = descMC.comparar(mainCarac, vecCarac)
 		results[name] = d
 
 # sort the results
@@ -104,7 +105,7 @@ for (i,(value, name)) in enumerate(results):
 		histReport+=histReportLine
 
 histReport+="</body></html>"
-text_filename=".\\relatorios\\"+methodName+"_HitogramasColoridos.html"
+text_filename=".\\relatorios\\"+methodName+"_MomentosCromaticidade.html"
 text_file = open(text_filename, "w")
 text_file.write(histReport)
 text_file.close()

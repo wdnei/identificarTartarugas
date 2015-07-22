@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 import cPickle
 import glob
 import argparse
-from descritores import HistogramaColoridoRGB
+from descritores import MomentosCromaticidade
 
 #Inicializar Descritor RGB
-descRGB=HistogramaColoridoRGB
+descMC=MomentosCromaticidade
 
 
 
@@ -20,23 +20,18 @@ args = vars(ap.parse_args())
 # initialize the index dictionary to store the image name
 # and corresponding histograms and the images dictionary
 # to store the images themselves
-index = {}
-images = {}
 
-histNumBins=256
-
-
-
+index={}
 # loop over the image paths
 for filename in glob.glob(args["dataset"] + "/*/*[0-9].jpg"):
     #Descreve a imagem
-    hist = descRGB.get_histograma(filename,histNumBins)
-    index[filename] = hist
-    print filename
+    vecCarac = descMC.descrever(filename,5,5)
+    index[filename]=vecCarac
+    print filename,vecCarac
 
 
 
-out = open('histRGBtrainIndex.dmp', 'wb')
+out = open('mcTrainIndex.dmp', 'wb')
 cPickle.dump(index,out)
 out.close()
 print "Dados de treino criados!"
