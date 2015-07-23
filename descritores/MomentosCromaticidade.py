@@ -13,8 +13,14 @@ import math
 """
 
 def chi2_distance(histA, histB, eps = 1e-10):
-        #compute the chi-squared distance
+        #calcular a distancia chi-squared - eh usado "eps" para evitar divisao por "zero" 
         d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps) for (a, b) in zip(histA, histB)])
+        # retorna a distancia chi-squared
+        return d
+
+def manhattan_distance(histA, histB):
+        #calcular a distancia de manhatan ver https://en.wikipedia.org/wiki/Taxicab_geometry
+        d =np.sum([ math.fabs(a-b) for (a, b) in zip(histA, histB)])
         # return the chi-squared distance
         return d
 
@@ -155,5 +161,14 @@ def descrever(filename,qtdT,qtdD):
 
 
 
-def comparar(vecA,vecB):
-        return chi2_distance(vecA, vecB)
+def comparar_chi2_distance(vecA,vecB):
+         """Compara usando a distancia chi-squared 
+
+         """
+         return chi2_distance(vecA, vecB)
+
+def comparar_manhattan_distance(vecA,vecB):
+         """Compara usando a distancia de manhatan ver https://en.wikipedia.org/wiki/Taxicab_geometry 
+
+         """
+         return manhattan_distance(vecA, vecB)

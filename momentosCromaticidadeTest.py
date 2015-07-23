@@ -10,20 +10,13 @@ from descritores import MomentosCromaticidade
 #Inicializar Descritor RGB
 descMC=MomentosCromaticidade
 
-def chi2_distance(histA, histB, eps = 1e-10):
-		# compute the chi-squared distance
-		d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
-			for (a, b) in zip(histA, histB)])
-
-		# return the chi-squared distance
-		return d
-
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-d", "--datatrained", required = True,help = "Path to the directory of images")
-ap.add_argument("-i", "--image", required = True,help = "PathName of Image to be compared")
-ap.add_argument("-o","--open", action='store_true',required = False,help = "Open Query in Browser")
+ap.add_argument("-d", "--datatrained", required = True,help = "Banco das imagens indexadas")
+ap.add_argument("-i", "--image", required = True,help = "Imagem a ser usada como query")
+ap.add_argument("-o","--open", action='store_true',required = False,help = "Abrir resultado no Navegador Web")
+ap.add_argument("-c","--calc",required = False,help = "Tipo de comparacao: 1- Distancia ChiSquared(default); 2-Distancia de Manhattan")
 
 args = vars(ap.parse_args())
 
@@ -47,14 +40,24 @@ mainCarac= descMC.descrever(mainImagePath,5,5)
 print len(mainCarac)
 
 
-# initialize OpenCV methods for histogram comparison
-methodName="Chi-Squared"
-# loop over the comparison methods
+# inicializa o metodo de comparacao a ser usado
+nome_metodo="Chi-Squared"
+comparar=descMC.comparar_chi2_distance
 
+if(args["calc"] and args["calc"]=='2' ):
+    nome_metodo="Manhattan-Distance"
+    comparar=descMC.comparar_manhattan_distance
+    print "AAAA"
+
+        
+
+
+
+#Inicializa resultado
 histReport="""<html> <head> </head>
 
 <body>
-<h1>Query Usando Momentos de Cromaticidade</h1>
+<h1>Query Usando Momentos de Cromaticidade e """+nome_metodo+""" como metodo de comparacao</h1>
 <div style=\"border:1px solid black; height:90px\">
                                 
 				<div style=\"float:left; padding-right:5px;\">
@@ -62,33 +65,30 @@ histReport="""<html> <head> </head>
 				</div>
 				<div>
 				<p>Query Image:"""+mainImagePath+"""</p>
-
-		</span>
+		
 				</div>
 		</div><\br>"""
-# initialize the results dictionary and the sort
-# direction
+# inicializa o dicionario de resultados
 results = {}
 reverse = False
 
-# if we are using the correlation or intersection
-# method, then sort the results in reverse order
-if methodName in ("Correlation", "Intersection"):
-		reverse = True
 
-# loop over the index
+
+
+
+
+#Calcula a distancia de todos os vetores de caracteristicas com a imagem query
 for (name, vecCarac) in index.items():
-		# compute the distance between the two histograms
-		# using the method and update the results dictionary
-		d = descMC.comparar(mainCarac, vecCarac)
+		# Calcula a distancia de cada vetor de caracteristica com o vetor da imagem de query
+		d = comparar(mainCarac, vecCarac)
 		results[name] = d
 
-# sort the results
-results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
-# loop over the results
+# organiza os resultados em ordem decrescente
+results = sorted([(v, k) for (k, v) in results.items()], reverse = False)
+# imprime resultados
 for (i,(value, name)) in enumerate(results):
 		# show the result
-		print  methodName ,name
+		print  nome_metodo ,name
 		histText=""
 		histReportLine=""
 		histReportLine+= """<div style=\"border:1px solid black; height:90px\">
@@ -97,7 +97,7 @@ for (i,(value, name)) in enumerate(results):
 				</div>
 				<div>
 				<p>"""+name+"""</p>
-				<span style="float:top;\">
+				<span style="float:top;\">Distancia:
 				"""+str(value)+"""
 		</span>
 				</div>
@@ -105,7 +105,7 @@ for (i,(value, name)) in enumerate(results):
 		histReport+=histReportLine
 
 histReport+="</body></html>"
-text_filename=".\\relatorios\\"+methodName+"_MomentosCromaticidade.html"
+text_filename=".\\relatorios\\"+nome_metodo+"_MomentosCromaticidade.html"
 text_file = open(text_filename, "w")
 text_file.write(histReport)
 text_file.close()
