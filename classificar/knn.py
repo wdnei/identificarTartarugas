@@ -6,6 +6,7 @@ import csv
 import random
 import math
 import operator
+import numpy as np
 
 def loadDataset(filename, split, trainingSet=[] , testSet=[]):
 	with open(filename, 'rb') as csvfile:
@@ -20,17 +21,25 @@ def loadDataset(filename, split, trainingSet=[] , testSet=[]):
 	            testSet.append(dataset[x])
 
 
+def chi2_distance(histA, histB,length,eps = 1e-10):
+        #calcular a distancia chi-squared - eh usado "eps" para evitar divisao por "zero" 
+        d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps) for (a, b) in zip(histA[:length], histB[:length])])
+        # retorna a distancia chi-squared
+        return d
+
 def euclideanDistance(instance1, instance2, length):
 	distance = 0
 	for x in range(length):
-		distance += pow((instance1[x] - instance2[x]), 2)
+                a=instance1[x]
+                b=instance2[x]
+		distance =distance+((a - b)**2)
 	return math.sqrt(distance)
 
 def getNeighbors(trainingSet, testInstance, k):
 	distances = []
 	length = len(testInstance)-1
 	for x in range(len(trainingSet)):
-		dist = euclideanDistance(testInstance, trainingSet[x], length)
+		dist = chi2_distance(testInstance, trainingSet[x], length)
 		distances.append((trainingSet[x], dist))
 	distances.sort(key=operator.itemgetter(1))
 	neighbors = []

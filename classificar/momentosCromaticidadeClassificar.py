@@ -41,7 +41,8 @@ mainImagePath=args["image"]
 mainCarac= descMC.descrever(mainImagePath,5,5)
 
 trainingSet=index
-testSet=[mainCarac,args["classe"]]
+mainCarac.append(args["classe"])
+testSet=[mainCarac]
 split = 0.67
 print 'Train set: ' + repr(len(trainingSet))
 print 'Test set: ' + repr(len(testSet))
