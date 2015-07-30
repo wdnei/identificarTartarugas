@@ -30,7 +30,7 @@ histNumBins=256
 # loop over the image paths
 for filename in glob.glob(args["dataset"] + "/*/*[0-9].jpg"):
     #Descreve a imagem
-    hist = descRGB.get_histograma(filename,histNumBins)
+    hist = descRGB.descrever_estatistico(filename,histNumBins)
     index[filename] = hist
     print filename
 

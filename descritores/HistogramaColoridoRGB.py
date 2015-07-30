@@ -71,7 +71,7 @@ def descrever_estatistico(filename,numBins):
             imagem -- imagem criada por imread(src) padrao RGB opencv
             return -- [Media,Variancia,Curtose,Energia,Entropia] para cada canal
          """
-        imagem= HistogramaColoridoRGB.read_image(filename)
+        imagem= read_image(filename)
         result=[]
         hist_r=cv2.calcHist([imagem], [0], None,[numBins],[0, 256])
         hist_g=cv2.calcHist([imagem], [1], None,[numBins],[0, 256])
@@ -86,9 +86,9 @@ def descrever_estatistico(filename,numBins):
         p_g=[]
         p_b=[]
         for index in range(0,numBins):
-                p_r.append(HistogramaColoridoRGB.densidade_probabilidade(hist_r[index],N,M))
-                p_g.append(HistogramaColoridoRGB.densidade_probabilidade(hist_g[index],N,M))
-                p_b.append(HistogramaColoridoRGB.densidade_probabilidade(hist_b[index],N,M))
+                p_r.append(densidade_probabilidade(hist_r[index],N,M))
+                p_g.append(densidade_probabilidade(hist_g[index],N,M))
+                p_b.append(densidade_probabilidade(hist_b[index],N,M))
 
          #Media
         media_r=0
