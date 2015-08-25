@@ -42,7 +42,7 @@ histNumBins=256
 #nova imagem
 #initialize query image
 mainImagePath=args["image"]
-mainHist= descRGB.descrever(mainImagePath,histNumBins)
+mainHist= descRGB.descrever_estatistico(mainImagePath,histNumBins)
 
 print len(mainHist)
 
