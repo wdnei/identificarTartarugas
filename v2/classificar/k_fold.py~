@@ -1,9 +1,9 @@
 """python matrix_confusao.py  -m 2 -d HC_treinados.dmp -i HC_matrix_confusao_classe_x_classe"""
 """
     Arquivo para criacao de matriz de confusao classesXclasses, no qual eh calculado tambem a acuracia
-
+ver http://www.analyticsvidhya.com/blog/2015/05/k-fold-cross-validation-simple/
 """
-
+from random import shuffle
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -18,10 +18,44 @@ import os
 import MomentosCromaticidade
 import HistogramaColoridoRGB
 
+def k_fold_cross_validation(items, k, randomize=False):
+
+    if randomize:
+        items = list(items)
+        shuffle(items)
+
+    slices = [items[i::k] for i in xrange(k)]
+
+    for i in xrange(k):
+        validation = slices[i]
+        training = [item
+                    for s in slices if s is not validation
+                    for item in s]
+        yield training, validation,i
+
+
+
+testSet=[];
+
+for filename in glob.glob("../testes/*/*[0-9].jpg"):
+    #Descreve a imagem
+    classe=filename.split(os.sep)[-2]
+    testSet.append(filename)
+
+
+for train,test in k_fold_cross_validation([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30], 6, True):
+    print "training:",train
+    print "test:",test
+    print i
+
+
+
 #Inicializar Descritor
 descritor=None
 
 
+
+quit()
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -128,7 +162,7 @@ for x in xrange(width):
                     horizontalalignment='center',
                     verticalalignment='center')
 
-#cb = fig.colorbar(res)
+cb = fig.colorbar(res)
 #cb.ax.set_ylabel('Accuracy:'+str("%.2f" % accuracy)+'%')
 
 plt.xticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])

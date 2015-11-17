@@ -1,3 +1,8 @@
+"""python matrix_confusao.py  -m 2 -d HC_treinados.dmp -i HC_matrix_confusao_classe_x_classe"""
+"""
+    Arquivo para criacao de matriz de confusao classesXclasses, no qual eh calculado tambem a acuracia
+
+"""
 
 import cv2
 import numpy as np
@@ -103,7 +108,7 @@ for i in conf_arr:
     tmp_arr = []
     a = sum(i, 0)
     for j in i:
-        tmp_arr.append(float(j)/float(a))
+        tmp_arr.append((float(j)/float(a))*100)
     norm_conf.append(tmp_arr)
 
 fig = plt.figure()
