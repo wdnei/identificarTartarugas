@@ -90,7 +90,7 @@ def descrever(filename,numBins=256):
                 p_g.append(densidade_probabilidade(hist_g[index],N,M))
                 p_b.append(densidade_probabilidade(hist_b[index],N,M))
 
-        #Media
+         #Media
         media_r=0
         media_g=0
         media_b=0

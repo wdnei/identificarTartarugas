@@ -31,24 +31,25 @@ def k_fold_cross_validation(items, k, randomize=False):
         training = [item
                     for s in slices if s is not validation
                     for item in s]
-        yield training, validation,i
+        yield training, validation
 
 
 
-testSet=[];
-
-for filename in glob.glob("../testes/*/*[0-9].jpg"):
+allSet=[];
+count=0
+for filename in glob.glob("../samples/*/*_[0-9].jpg"):
     #Descreve a imagem
     classe=filename.split(os.sep)[-2]
-    testSet.append(filename)
+    allSet.append(filename)
+    count=count+1
+    
 
 
-for train,test in k_fold_cross_validation([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30], 6, True):
+for train,test in k_fold_cross_validation(allSet, 6, True):
     print "training:",train
     print "test:",test
-    print i
 
-
+print "Count:",count
 
 #Inicializar Descritor
 descritor=None
@@ -60,8 +61,8 @@ quit()
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--method", required = True,help = "Metodo a ser usado 1- Momentos de Cromaticidade , 2-Histograma colorido")
-ap.add_argument("-d", "--datatrained", required = True,help = "Banco das imagens indexadas")
-ap.add_argument("-i", "--image", required = True,help = "Nome da Imagem a ser salva")
+#ap.add_argument("-d", "--datatrained", required = True,help = "Banco das imagens indexadas")
+#ap.add_argument("-i", "--image", required = True,help = "Nome da Imagem a ser salva")
 #ap.add_argument("-c","--class",required = True,help = "Classe real da imagem a ser testada")
 
 args = vars(ap.parse_args())
@@ -80,15 +81,18 @@ index = cPickle.load( arquivo )
 arquivo.close()
 images = {}
 
-testSet=[];
+testSet=[]
+validationSet=[]
 
-for filename in glob.glob("../testes/*/*[0-9].jpg"):
+for filename in glob.glob("../samples/*/*_[0-9]_[0-9].jpg"):
     #Descreve a imagem
     classe=filename.split(os.sep)[-2]
     vecCarac = descritor.descrever(filename)
-    vecCarac.append(classe)
+    vecCarac.append(classe) #coloca o nome da classe ao fim do vetor para ser usado posteriormente
     print(classe +"\n")
     testSet.append(vecCarac)
+    
+ 
 
 
 
