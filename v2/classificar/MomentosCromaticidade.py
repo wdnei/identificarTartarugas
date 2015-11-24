@@ -45,6 +45,8 @@ def get_xy_space(filename):
                 for j in range(cols):
                         X,Y,Z = image[i,j]
                         soma_XYZ=int(X)+int(Y)+int(Z)
+                        if(soma_XYZ<=0):
+                            soma_XYZ=1
                         #x do diagrama de cromaticidade
                         x_c=float(X)/soma_XYZ
                         #y do diagrama de cromaticidade
@@ -66,10 +68,12 @@ def get_T(xy_space):
 
          """
         rows,cols,dimensions=xy_space.shape
-        T=[ [ 0 for i in range(100) ] for j in range(100) ]
+        T=[ [ 0 for i in range(101) ] for j in range(101) ]
+        
         for i in range(rows):
                 for j in range(cols):
                         x,y=xy_space[i,j]
+                        #print x,y
                         T[x][y]=1
         return np.array(T,dtype=int)
 
