@@ -24,7 +24,7 @@ def manhattan_distance(histA, histB):
         # return the chi-squared distance
         return d
 
-def read_image(filename):
+def ler_imagemXYZ(filename):
         """Retorna imagem XYZ usando a biblioteca opencv
 
         """
@@ -37,12 +37,12 @@ def get_xy_space(filename):
         """Retorna uma matriz da imagem usando as coordenadas x-y de cromaticidade
 
          """
-        image=read_image(filename)
-        rows,cols,dimensions=image.shape
+        image=ler_imagemXYZ(filename)#ler a imagem ja convertida para XYZ
+        numeroLinhas,numeroColunas,numeroCanais=image.shape
         #criar a matriz que recebera as coordenadas xy, ou seja, 2 dimensoes
-        xy_space_result=[ [ 0 for i in range(rows) ] for j in range(cols) ]
-        for i in range(rows):
-                for j in range(cols):
+        xy_space_result=[ [ 0 for i in range(numeroLinhas) ] for j in range(numeroColunas) ]
+        for i in range(numeroLinhas):
+                for j in range(numeroColunas):
                         X,Y,Z = image[i,j]
                         soma_XYZ=int(X)+int(Y)+int(Z)
                         if(soma_XYZ<=0):
@@ -73,7 +73,7 @@ def get_T(xy_space):
         for i in range(rows):
                 for j in range(cols):
                         x,y=xy_space[i,j]
-                        print x,y
+                        #print x,y
                         T[x][y]=1
         return np.array(T,dtype=int)
 

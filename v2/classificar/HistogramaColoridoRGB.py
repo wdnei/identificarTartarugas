@@ -15,11 +15,12 @@ def chi2_distance(histA, histB, eps = 1e-10):
         # return the chi-squared distance
         return d
 
-def read_image(filename):
+def ler_imagemRGB(filename):
         """Retorna imagem RGB usando a biblioteca opencv
          """
          # Ler uma imagem usando OpenCV 
         imagem = cv2.imread(filename)
+        # Converter a imagem do padrao BGR para RGB
         imagem= cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
         return imagem
 
@@ -33,7 +34,7 @@ def get_histograma3D(filename,numBins):
             imagem -- imagem a ser transformada em hitograma
             return -- histograma 3D
          """
-        imagem= HistogramaColoridoRGB.read_image(filename)
+        imagem= HistogramaColoridoRGB.ler_imagemRGB(filename)
         return cv2.calcHist([imagem], [0, 1, 2], None,[numBins,numBins,numBins],[0, 256, 0, 256, 0, 256]).flatten()
 
 
@@ -44,10 +45,13 @@ def get_histograma(filename,numBins):
             imagem -- imagem a ser transformada em hitograma
             return -- histograma 1
          """
-        imagem=read_image(filename)
+        imagem=ler_imagemRGB(filename)
         result=[]
+        #Gerar histograma do canal R
         hist_r=cv2.calcHist([imagem], [0], None,[numBins],[0, 256])
+        #Gerar histograma do canal G
         hist_g=cv2.calcHist([imagem], [1], None,[numBins],[0, 256])
+        #Gerar histograma do canal B
         hist_b=cv2.calcHist([imagem], [2], None,[numBins],[0, 256])
         result=np.append(result,[hist_r,hist_g,hist_b])
         return result
@@ -55,7 +59,7 @@ def get_histograma(filename,numBins):
 
 
 
-def normalizar_hitograma(hist):
+def normalizar_histograma(hist):
         return cv2.normalize(hist)
 
 
@@ -65,23 +69,26 @@ def densidade_probabilidade(valor,N,M):
 
 
 def descrever(filename,numBins=256):
-        """Descreve o histograma usando metodos estatisticos
+        """Descreve uma imagem com metodo Histograma colorido usando metodos estatisticos
 
             Keyword arguments:
             imagem -- imagem criada por imread(src) padrao RGB opencv
             return -- [Media,Variancia,Curtose,Energia,Entropia] para cada canal
          """
-        imagem= read_image(filename)
+        imagem= ler_imagemRGB(filename)
         result=[]
+        #Gerar histograma do canal R
         hist_r=cv2.calcHist([imagem], [0], None,[numBins],[0, 256])
+        #Gerar histograma do canal G
         hist_g=cv2.calcHist([imagem], [1], None,[numBins],[0, 256])
+        #Gerar histograma do canal B
         hist_b=cv2.calcHist([imagem], [2], None,[numBins],[0, 256])
         
-        #Dimensoes da Imagem
+        #Recuperar dimensoes da Imagem
         N, M = imagem.shape[:2]
 
 
-        #densidade de probabilidade
+        #calcular densidade de probabilidade
         p_r=[]
         p_g=[]
         p_b=[]
@@ -90,36 +97,37 @@ def descrever(filename,numBins=256):
                 p_g.append(densidade_probabilidade(hist_g[index],N,M))
                 p_b.append(densidade_probabilidade(hist_b[index],N,M))
 
-        #Media
+        #Calcular Media
         media_r=0
         media_g=0
         media_b=0
-        for index in range(0,numBins):   # default is zero
+        for index in range(0,numBins):
                 media_r+=index*p_r[index]
                 media_g+=index*p_g[index]
                 media_b+=index*p_b[index]
 
         result.extend([media_r,media_g,media_b])
 
-        #Variancia
+        #Calcular Variancia
         variancia_r=0
         variancia_g=0
         variancia_b=0
 
 
-        for index in range(0,numBins):   # default is zero
+        for index in range(0,numBins):
                 variancia_r+=math.pow((index-media_r),2)*p_r[index]
                 variancia_g+=math.pow((index-media_g),2)*p_g[index]
                 variancia_b+=math.pow((index-media_b),2)*p_b[index]
 
         result.extend([variancia_r,variancia_g,variancia_b])
-        #Curtose
+        
+        #Calcular Curtose
         curtose_r=0
         curtose_g=0
         curtose_b=0
 
 
-        for index in range(0,numBins):   # default is zero
+        for index in range(0,numBins):
                 curtose_r+=(math.pow((index-media_r),4)*p_r[index])-3
                 curtose_g+=(math.pow((index-media_g),4)*p_g[index])-3
                 curtose_b+=(math.pow((index-media_b),4)*p_b[index])-3
@@ -128,23 +136,25 @@ def descrever(filename,numBins=256):
         curtose_g=math.pow(variancia_g,-8)*curtose_g
         curtose_b=math.pow(variancia_b,-8)*curtose_b
         result.extend([curtose_r,curtose_g,curtose_b])
-        #Energia
+        
+        #Calcular Energia
         energia_r=0
         energia_g=0
         energia_b=0
 
-        for index in range(0,numBins):   # default is zero
+        for index in range(0,numBins):
                 energia_r+=math.pow(p_r[index],2)
                 energia_g+=math.pow(p_g[index],2)
                 energia_b+=math.pow(p_b[index],2)
 
         result.extend([energia_r,energia_g,energia_b])
-        #Entropia
+        
+        #Calcular Entropia
         entropia_r=0
         entropia_g=0
         entropia_b=0
 
-        for index in range(0,numBins):   # default is zero
+        for index in range(0,numBins):
                 entropia_r+=0 if p_r[index]<=0 else p_r[index]*(math.log(p_r[index],2))
                 entropia_g+=0 if p_g[index]<=0 else p_g[index]*(math.log(p_g[index],2))
                 entropia_b+=0 if p_b[index]<=0 else p_b[index]*(math.log(p_b[index],2))
