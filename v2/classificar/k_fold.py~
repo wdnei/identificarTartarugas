@@ -54,7 +54,7 @@ class KNN(StatModel):
 
     def predict(self, samples):
         ret, results, neighbours ,dist = self.model.find_nearest(samples, 3)
-        return results.reshape(1,len(results))[0]
+        return results.reshape(1,len(results))[0].astype(int)
         #return np.float32( [self.model.find_nearest(s, 3) for s in samples])
 
 
@@ -98,6 +98,45 @@ def k_fold_cross_validation(items, k, randomize=False):
                     for s in slices if s is not validation
                     for item in s]
         yield training, validation
+
+
+def gerarMatrixConfusao(preds,titulo):
+    conf_arr=preds
+    norm_conf = []
+    for i in conf_arr:
+        a = 0
+        tmp_arr = []
+        a = sum(i, 0)
+        for j in i:
+            tmp_arr.append((float(j)/float(a))*100)
+        norm_conf.append(tmp_arr)
+
+    fig = plt.figure()
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ax.set_aspect(1)
+    #ax.tick_params(labelbottom='off',labeltop='on')
+    res = ax.imshow(np.array(norm_conf), cmap="YlGn",interpolation='nearest')
+
+    width = len(conf_arr)
+    height = len(conf_arr[0])
+
+    for x in xrange(width):
+        for y in xrange(height):
+            ax.annotate(str("%.2f" % conf_arr[x][y]*1, xy=(y, x),horizontalalignment='center', verticalalignment='center')
+
+    cb = fig.colorbar(res)
+    #cb.ax.set_ylabel('Accuracy:'+str("%.2f" % accuracy)+'%')
+
+    plt.xticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])
+    plt.yticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])
+    plt.ylabel('Classe Verdadeira')
+    plt.xlabel('Classe Prevista')
+    plt.title('Matriz de Confusao:'+titulo)
+
+    #plt.xticks(range(width), alphabet[:width])
+    #plt.yticks(range(height), alphabet[:height])
+    plt.savefig("k_fold_result/"+titulo.replace(" ","")+'.png', format='png')
 
 
 
@@ -150,12 +189,21 @@ count=0
 
 arquivo = open('k_fold_result/K_fold_'+str(fold)+"_"+( "KNN" if classificador==1 else "SVM")+"_"+( "MoCr" if metodo==1 else "HiCo")+'.txt', 'w')    
 
-for train,test in k_fold_cross_validation(allSet, fold, True):
+preds=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
+
+
+for train,test in k_fold_cross_validation(allSet, fold, False):
     #print "training:",train
     #print "test:",test
     trainingSet,trainingResponse=carregar_imagens(train,metodo)
     testSet,testResponse=carregar_imagens(test,metodo)
     precisao,result=getClassificationPrecision(trainingSet,trainingResponse,testSet,testResponse,classificador)
+    for index in range(len(result)):
+        indiceClassePredita=result[index]
+        indiceClasseReal=testResponse[index]
+        preds[indiceClasseActual][indiceClassePred]+=1
+        
     acumulador+=precisao
     count+=1
     #print len(testSet)
@@ -174,9 +222,9 @@ print "Fold:",fold
 arquivo.write("Media de Precisao:" + str("%.2f" % (acumulador/float(count))))
 print "Media:",acumulador/count
 arquivo.close()
-#Inicializar Descritor
-descritor=None
 
+titulo="K-fold-"+str(fold)+" "+( "Momentos de Cromaticidade" if metodo==1 else "Histograma Colorido")+"-> "+( "KNN" if classificador==1 else "SVM")
+gerarMatrixConfusao(preds,titulo)
 
 
 

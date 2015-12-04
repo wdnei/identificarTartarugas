@@ -107,7 +107,7 @@ def gerarMatrixConfusao(preds,titulo):
         tmp_arr = []
         a = sum(i, 0)
         for j in i:
-            tmp_arr.append((float(j)/float(a))*100)
+            tmp_arr.append((float(j)/float(a if a>0 else 1))*100)
         norm_conf.append(tmp_arr)
 
     fig = plt.figure()
@@ -138,6 +138,32 @@ def gerarMatrixConfusao(preds,titulo):
     plt.savefig("k_fold_result/"+titulo.replace(" ","")+'.png', format='png')
 
 
+def getTabelaConfusao(preds):
+    '''Recupera os dados de 'verdadeiro positivo','falso positivo','verdadeiro negativo','falso negativo'
+        de cada uma das 5 classes e a retorna em um vetor, sedno o primeiro indice a classe e o segundo outro vetor com os dados
+    '''
+    resultados=[]
+    for classeIndex in range(5):# 5 classes
+        verdadeiro_positivo=preds[classeIndex][classeIndex]
+        falso_positivo=0
+        verdadeiro_negativo=0
+        falso_negativo=0
+        for linha in range(5):# 5 linhas
+            for coluna in range(5): #5 colunas
+                if(linha==classeIndex and coluna!=classeIndex):
+                    falso_negativo+=preds[linha][coluna]
+                elif(coluna==classeIndex and linha!=classeIndex):
+                    falso_positivo+=preds[linha][coluna]
+                elif(coluna!=classeIndex and linha!=classeIndex):
+                    verdadeiro_negativo+=preds[linha][coluna]
+
+        resultados.append((classeIndex,[verdadeiro_positivo,falso_positivo,verdadeiro_negativo,falso_negativo]))
+
+    return resultados
+
+
+
+
 
 def getClassificationPrecision(trainingSet,trainingResponse,testSet,testResponse,classificador):
     predictions=[]
@@ -165,7 +191,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--metodo", required = True,help = "Metodo a ser usado 1- Momentos de Cromaticidade , 2-Histograma colorido")
 ap.add_argument("-c", "--classificador", required = True,help = "Classificador a ser usado 1- KNN , 2-SVM")
 
-ap.add_argument("-f", "--fold", required = True,help = "Numero de 'fold'")
+
 
 args = vars(ap.parse_args())
 
@@ -179,17 +205,19 @@ for filename in glob.glob("../samples/*/*_[0-9]_[0-9].jpg"):
     #count=count+1
 
 #allSet=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+#allSet=allSet[0:2]
 metodo=int(args["metodo"])
 classificador=int(args["classificador"])
-rest=fold=int(args["fold"])
+rest=fold=len(allSet)
 acumulador=0
 precisao=0
 count=0
 
-arquivo = open('k_fold_result/K_fold_'+str(fold)+"_"+( "KNN" if classificador==1 else "SVM")+"_"+( "MoCr" if metodo==1 else "HiCo")+'.txt', 'w')
+arquivo = open('k_fold_result/K_fold_leave_one_out_'+( "KNN" if classificador==1 else "SVM")+"_"+( "MoCr" if metodo==1 else "HiCo")+'.txt', 'w')
 
 preds=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
 dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
+dictClassesIndex={0:'carettacaretta', 1:'cheloniamydas', 2:'dermochelyscoriacea',3:'eretmochelysimbricata',4:'lepidochelysolivacea'}
 
 
 for train,test in k_fold_cross_validation(allSet, fold, True):
@@ -203,24 +231,30 @@ for train,test in k_fold_cross_validation(allSet, fold, True):
         indiceClasseReal=testResponse[index]
         preds[indiceClasseReal][indiceClassePredita]+=1
 
-    acumulador+=precisao
-    count+=1
     #print len(testSet)
     arquivo.write("%s\n\n" % train)
     arquivo.write("%s\n\n" % test)
     arquivo.write("Verdadeiro:%s\n\n" % testResponse)
-    arquivo.write("Predicao:%s\n\n" % result)
-    arquivo.write("Precisao: %s\n\n" % precisao)
+    arquivo.write("Classificado:%s\n\n" % result)
     rest=rest-1
     print "resta:",rest
 
 
+arquivo.write("Predicoes:%s\n\n" % preds)
+
+tabelaConfusao=getTabelaConfusao(preds)
+print(tabelaConfusao)
+for index in range(5):
+    tabelaClasse=tabelaConfusao[index]
+    classeNome=dictClassesIndex[tabelaClasse[0]]
+    verdadeiro_positivo,falso_positivo,verdadeiro_negativo,falso_negativo=tabelaClasse[1]
+    arquivo.write("%s:" % classeNome)
+    arquivo.write("%s\n\n" % tabelaClasse[1])
 
 
-print "Fold:",fold
-arquivo.write("Media de Precisao:" + str("%.2f" % (acumulador/float(count))))
-print "Media:",acumulador/count
+
+
 arquivo.close()
 
-titulo="K-fold-"+str(fold)+" "+( "Momentos de Cromaticidade" if metodo==1 else "Histograma Colorido")+"-> "+( "KNN" if classificador==1 else "SVM")
+titulo="Leave One Out "+( "Momentos de Cromaticidade" if metodo==1 else "Histograma Colorido")+"-> "+( "KNN" if classificador==1 else "SVM")
 gerarMatrixConfusao(preds,titulo)
