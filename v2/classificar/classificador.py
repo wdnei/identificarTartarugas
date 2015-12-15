@@ -1,0 +1,119 @@
+"""Classificador
+    Classe responsavel por montar os classificadores a serem usados usando a a biblioteca OpenCV
+"""
+from random import shuffle
+import cv2
+import numpy as np
+import os
+import cPickle
+import glob
+import MomentosCromaticidade
+import HistogramaColoridoRGB
+
+
+
+class StatModel(object):
+    '''parent class - starting point to add abstraction'''
+    def load(self, fn):
+        self.model.load(fn)
+    def save(self, fn):
+        self.model.save(fn)
+
+
+class SVM(StatModel):
+    '''wrapper for OpenCV SimpleVectorMachine algorithm'''
+    def __init__(self):
+        self.model = cv2.SVM()
+
+    def train(self, samples, responses):
+        #setting algorithm parameters
+        params = dict( kernel_type = cv2.SVM_LINEAR,
+                       svm_type = cv2.SVM_C_SVC,
+                       C = 1 )
+        self.model.train(samples, responses, params = params)
+
+    def predict(self, samples):
+        return np.int32( [self.model.predict(s) for s in samples])
+
+
+
+class KNN(StatModel):
+    '''wrapper for OpenCV SimpleVectorMachine algorithm'''
+    def __init__(self):
+        self.model = cv2.KNearest()
+
+    def train(self, samples, responses):
+        #setting algorithm parameters
+        self.model.train(samples, responses)
+
+    def predict(self, samples):
+        ret, results, neighbours ,dist = self.model.find_nearest(samples, 3)
+        return results.reshape(1,len(results))[0].astype(int)
+        
+
+def carregar_imagens(listSet,metodo):
+    dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
+    loadListSet=[]
+    loadListLabel=[]
+    descritor=None
+    if(metodo==1):
+        descritor=MomentosCromaticidade
+    else:
+        descritor=HistogramaColoridoRGB
+    for filename in listSet:
+        #Descreve a imagem
+        classe=filename.split(os.sep)[-2]
+        vecCarac = descritor.descrever(filename)
+        #adiciona o nome da classe ao fim para comparar posteriormente
+        #print(classe +"\n")
+        #print vecCarac
+        loadListSet.append(vecCarac)
+        loadListLabel.append(dictClasses[classe])
+        #print np.array(vecCarac, dtype=np.float32)
+
+
+    return (np.array(loadListSet, dtype=np.float32),np.array(loadListLabel, dtype=np.int32))
+
+
+
+
+
+def k_fold_cross_validation(items, k, randomize=False):
+    """Funcao responsavel por gerar K-fold(dobramentos) separando em conjunto de treinamento e teste"""
+    if randomize:
+        items = list(items)
+        shuffle(items)
+
+    slices = [items[i::k] for i in xrange(k)]
+
+    for i in xrange(k):
+        validation = slices[i]
+        training = [item
+                    for s in slices if s is not validation
+                    for item in s]
+        yield training, validation
+
+
+def gerarTabelaConfusao(preds):
+    '''Recupera os dados de 'verdadeiro positivo','falso positivo','verdadeiro negativo','falso negativo'
+        de cada uma das 5 classes e a retorna em um vetor, sendo o primeiro indice a classe e o segundo outro vetor com os dados
+    '''
+    resultados=[]
+    for classeIndex in range(5):# 5 classes
+        verdadeiro_positivo=preds[classeIndex][classeIndex]
+        falso_positivo=0
+        verdadeiro_negativo=0
+        falso_negativo=0
+        for linha in range(5):# 5 linhas
+            for coluna in range(5): #5 colunas
+                if(linha==classeIndex and coluna!=classeIndex):
+                    falso_negativo+=preds[linha][coluna]
+                elif(coluna==classeIndex and linha!=classeIndex):
+                    falso_positivo+=preds[linha][coluna]
+                elif(coluna!=classeIndex and linha!=classeIndex):
+                    verdadeiro_negativo+=preds[linha][coluna]
+
+        resultados.append((classeIndex,[verdadeiro_positivo,falso_positivo,verdadeiro_negativo,falso_negativo]))
+
+    return resultados
+

@@ -1,6 +1,6 @@
-"""python matrix_confusao.py  -m 2 -d HC_treinados.dmp -i HC_matrix_confusao_classe_x_classe"""
 """
-    Arquivo avaliacao do metodos usando validacao cruzada e o classificador knn
+    Leave One Out
+    Arquivo avaliacao do metodos usando validacao cruzada  e o classificador knn ou svm
 """
 from random import shuffle
 import cv2
@@ -11,51 +11,13 @@ import glob
 import argparse
 import webbrowser
 
-import knn
+
 import os
 
 import MomentosCromaticidade
 import HistogramaColoridoRGB
+import classificador
 
-
-class StatModel(object):
-    '''parent class - starting point to add abstraction'''
-    def load(self, fn):
-        self.model.load(fn)
-    def save(self, fn):
-        self.model.save(fn)
-
-
-class SVM(StatModel):
-    '''wrapper for OpenCV SimpleVectorMachine algorithm'''
-    def __init__(self):
-        self.model = cv2.SVM()
-
-    def train(self, samples, responses):
-        #setting algorithm parameters
-        params = dict( kernel_type = cv2.SVM_LINEAR,
-                       svm_type = cv2.SVM_C_SVC,
-                       C = 1 )
-        self.model.train(samples, responses, params = params)
-
-    def predict(self, samples):
-        return np.int32( [self.model.predict(s) for s in samples])
-
-
-
-class KNN(StatModel):
-    '''wrapper for OpenCV SimpleVectorMachine algorithm'''
-    def __init__(self):
-        self.model = cv2.KNearest()
-
-    def train(self, samples, responses):
-        #setting algorithm parameters
-        self.model.train(samples, responses)
-
-    def predict(self, samples):
-        ret, results, neighbours ,dist = self.model.find_nearest(samples, 3)
-        return results.reshape(1,len(results))[0].astype(int)
-        #return np.float32( [self.model.find_nearest(s, 3) for s in samples])
 
 
 
