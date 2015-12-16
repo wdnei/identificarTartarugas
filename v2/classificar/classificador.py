@@ -94,6 +94,26 @@ def k_fold_cross_validation(items, k, randomize=False):
         yield training, validation
 
 
+def testar(trainingSet,trainingResponse,testSet,tipoClassificador):
+    """Calcula a taxa de acertos e retorna os resultados """
+    predictions=[]
+    preds=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+    dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
+    clf = None
+    if(tipoClassificador==1):
+        clf = KNN()
+    else:
+        clf = SVM()
+
+    #treinar
+    clf.train(trainingSet,trainingResponse)
+    #testar
+    result = clf.predict(testSet)
+ 
+    return result
+
+
+
 def gerarTabelaConfusao(preds):
     '''Recupera os dados de 'verdadeiro positivo','falso positivo','verdadeiro negativo','falso negativo'
         de cada uma das 5 classes e a retorna em um vetor, sendo o primeiro indice a classe e o segundo outro vetor com os dados

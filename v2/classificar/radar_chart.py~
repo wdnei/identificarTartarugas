@@ -139,40 +139,56 @@ def example_data():
             [0.07, 0.95, 0.04, 0.05, 0.00]]),
         ('Histograma de Cor', [
             [0.88, 0.01, 0.03, 0.03, 0.00],
-            [0.07, 0.95, 0.04, 0.05, 0.00]])
+            [0.07, 0.95, 0.41, 0.84, 0.00]])
         
     ]
     return data
 
 
-if __name__ == '__main__':
-    N = 5
+
+def gerarRadar(titulo='F-measure',data=[
+        ['Momentos de Cromaticidade','Histograma de Cor'],
+        ('KNN', [
+            [0.56, 0.56, 0.67, 0.35,0.25],
+            [0.65, 0.69, 0.41, 0.84, 0.41]]),
+        ('SVM', [
+            [0.62, 0.40, 0.76, 0.37, 0.36],
+            [0.45, 0.48, 0.55, 0.91, 0.06]])
+        
+    ],spoke_labels=['Caretta', 'Chelonia','Dermo','Eretmo','Lepido']):
+    
+    #data = example_data()
+    #spoke_labels = data.pop(0)
+    labels = data.pop(0)#('KNN', 'SVM')
+    N = len(spoke_labels)
     theta = radar_factory(N, frame='polygon')
 
-    data = example_data()
-    spoke_labels = data.pop(0)
-
-    fig = plt.figure(figsize=(9, 9))
+    
+    fig = plt.figure(figsize=(9, 9),facecolor='white')
     fig.subplots_adjust(wspace=0.25, hspace=0.20, top=0.85, bottom=0.05)
 
-    colors = ['b', 'r', 'g', 'm', 'y']
+    colors = ['b', 'r', 'w', 'm', 'y']
     # Plot the four cases from the example data on separate axes
     for n, (title, case_data) in enumerate(data):
         ax = fig.add_subplot(2, 2, n + 1, projection='radar')
-        plt.rgrids([0.2, 0.4, 0.6, 0.8])
+        #plt.rgrids([0.2, 0.4, 0.6,0.8,1.0])
         ax.set_title(title, weight='bold', size='medium', position=(0.5, 1.1),
                      horizontalalignment='center', verticalalignment='center')
+        case_data=case_data+[[0.2, 0.4, 0.6, 0.8, 1.0]]# vetor adicionado para que todos graficos contenham os mesmo grids
         for d, color in zip(case_data, colors):
-            ax.plot(theta, d, color=color)
-            ax.fill(theta, d, facecolor=color, alpha=0.25)
-        ax.set_varlabels(spoke_labels)
+            if(color=="w"):
+                ax.plot(theta, d, color=color,alpha=0)
+                ax.fill(theta, d, facecolor=color, alpha=0)
+            else:
+                ax.plot(theta, d, color=color)
+                ax.fill(theta, d, facecolor=color, alpha=0.25)
+        ax.set_varlabels(spoke_labels+[""])
 
     # add legend relative to top-left plot
-    plt.subplot(2, 2, 1)
-    labels = ('KNN', 'SVM')
-    legend = plt.legend(labels, loc=(1, .95), labelspacing=0.1)
+    plt.subplot(2, 2, 1)    
+    legend = plt.legend(labels, loc=(0.7, 0.98), labelspacing=0.1)
     plt.setp(legend.get_texts(), fontsize='small')
 
-    plt.figtext(0.5, 0.965, 'F-measure',
+    plt.figtext(0.5, 0.965, titulo,
                 ha='center', color='black', weight='bold', size='large')
     plt.show()

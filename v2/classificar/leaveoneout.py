@@ -20,29 +20,6 @@ import classificador
 import desenhagraficos
 
 
-
-
-def calcularPrecisao(trainingSet,trainingResponse,testSet,testResponse,tipoClassificador):
-    predictions=[]
-    preds=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
-    dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
-    clf = None
-    if(tipoClassificador==1):
-        clf = classificador.KNN()
-    else:
-        clf = classificador.SVM()
-
-    clf.train(trainingSet,trainingResponse)
-    result = clf.predict(testSet)
-    print result
-    mask = result==testResponse
-    correct = np.count_nonzero(mask)
-    precisao= correct*100.0/result.size
-    print "Precisao:",precisao
-    return precisao,result
-
-
-
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--metodo", required = True,help = "Metodo a ser usado 1- Momentos de Cromaticidade , 2-Histograma colorido")
@@ -65,7 +42,7 @@ for filename in glob.glob("../samples/*/*_[0-9]_[0-9].jpg"):
 #allSet=allSet[0:2]
 metodo=int(args["metodo"])
 tipoClassificador=int(args["classificador"])
-rest=fold=len(allSet)
+rest=fold=10
 acumulador=0
 precisao=0
 count=0
@@ -82,7 +59,7 @@ dictClassesIndex={0:'carettacaretta', 1:'cheloniamydas', 2:'dermochelyscoriacea'
 for train,test in classificador.k_fold_cross_validation(allSet, fold, True):
     trainingSet,trainingResponse=classificador.carregar_imagens(train,metodo)
     testSet,testResponse=classificador.carregar_imagens(test,metodo)
-    precisao,result=calcularPrecisao(trainingSet,trainingResponse,testSet,testResponse,tipoClassificador)
+    precisao,result=classificador.testar(trainingSet,trainingResponse,testSet,testResponse,tipoClassificador)
     for index in range(len(result)):
         indiceClassePredita=result[index]
         indiceClasseReal=testResponse[index]

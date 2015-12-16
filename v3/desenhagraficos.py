@@ -1,0 +1,59 @@
+
+"""
+    Funcoes para desenhar graficos
+
+"""
+
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+import cPickle
+import glob
+import argparse
+import webbrowser
+import sys
+
+
+
+
+def gerarMatrizConfusao(preds,titulo,nome=""):
+    conf_arr=preds
+    norm_conf = []
+    for i in conf_arr:
+        a = 0
+        tmp_arr = []
+        a = sum(i, 0)
+        for j in i:
+            tmp_arr.append((float(j)/float(a if a>0 else 1))*100)
+        norm_conf.append(tmp_arr)
+
+    fig = plt.figure()
+    plt.clf()
+    ax = fig.add_subplot(111)
+    ax.set_aspect(1)
+    #ax.tick_params(labelbottom='off',labeltop='on')
+    res = ax.imshow(np.array(norm_conf), cmap="YlGn",interpolation='nearest')
+
+    width = len(conf_arr)
+    height = len(conf_arr[0])
+
+    for x in xrange(width):
+        for y in xrange(height):
+            ax.annotate(str("%.2f" % (conf_arr[x][y]*1)), xy=(y, x),horizontalalignment='center', verticalalignment='center')
+
+    #cb = fig.colorbar(res)
+    #cb.ax.set_ylabel('Accuracy:'+str("%.2f" % accuracy)+'%')
+
+    plt.xticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])
+    plt.yticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])
+    plt.ylabel('Real')
+    plt.xlabel('Classificada')
+    plt.title('Matriz de Confusao:'+titulo)
+
+    #plt.xticks(range(width), alphabet[:width])
+    #plt.yticks(range(height), alphabet[:height])
+    if(nome==""):
+        nome="k_fold_result/"+titulo.replace(" ","")+'.png';
+    
+    plt.savefig(nome+'.png', format='png')
+
