@@ -24,96 +24,76 @@ def manhattan_distance(histA, histB):
         # return the chi-squared distance
         return d
 
-def ler_imagemXYZ(filename):
+def ler_imagemXYZ(caminho_imagem):
         """Retorna imagem XYZ usando a biblioteca opencv
 
         """
-        imagem = cv2.imread(filename)
+        imagem = cv2.imread(caminho_imagem)
         imagem= cv2.cvtColor(imagem, cv2.COLOR_BGR2XYZ)
         return imagem
 
 
-def get_xy_space(filename):
+def gerar_xy_coordenadas(caminho_imagem):
         """Retorna uma matriz da imagem usando as coordenadas x-y de cromaticidade
 
          """
-        image=ler_imagemXYZ(filename)#ler a imagem ja convertida para XYZ
+        image=ler_imagemXYZ(caminho_imagem)#ler a imagem ja convertida para XYZ
         numeroLinhas,numeroColunas,numeroCanais=image.shape
         #criar a matriz que recebera as coordenadas xy, ou seja, 2 dimensoes
-        xy_space_result=[ [ 0 for i in range(numeroLinhas) ] for j in range(numeroColunas) ]
+        xy_espaco_resultado=[ [ 0 for i in range(numeroLinhas) ] for j in range(numeroColunas) ]
         for i in range(numeroLinhas):
                 for j in range(numeroColunas):
                         X,Y,Z = image[i,j]
                         soma_XYZ=int(X)+int(Y)+int(Z)
                         if(soma_XYZ<=0):
-                            soma_XYZ=1
+                            soma_XYZ=1 #evitar divisao por zero
                         #x do diagrama de cromaticidade
                         x_c=float(X)/soma_XYZ
                         #y do diagrama de cromaticidade
                         y_c=float(Y)/soma_XYZ
-                        xy_space_result[i][j]=[x_c,y_c]
+                        xy_espaco_resultado[i][j]=[x_c,y_c]
 
 
         #transformar para numpy arrays
-        xy_space_result=np.array(xy_space_result,dtype=float)
+        xy_espaco_resultado=np.array(xy_espaco_resultado,dtype=float)
         #discretizar os valores entre 0 e 100
-        xy_space_result*=100
+        xy_espaco_resultado*=100
         #rescalar para que os valores sejam somente inteiros
-        xy_space_result=xy_space_result.astype(np.uint8)
-        return xy_space_result
+        xy_espaco_resultado=xy_espaco_resultado.astype(np.uint8)
+        return xy_espaco_resultado
 
 
-def get_T(xy_space):
-        """Retorna o diagrama de cromaticidade para a imagem em x-y coordenadas
-
-         """
-        rows,cols,dimensions=xy_space.shape
-        T=[ [ 0 for i in range(101) ] for j in range(101) ]
+def gerar_T(xy_espaco):
+        """Retorna o diagrama de cromaticidade para a imagem em x-y coordenadas """
+        linhas,colunas,dimensions=xy_espaco.shape
+        T=[ [ 0 for i in range(101) ] for j in range(101) ] # gerar uma matriz 100X100  
         
-        for i in range(rows):
-                for j in range(cols):
-                        x,y=xy_space[i,j]
-                        #print x,y
+        #gera matriz T-type
+        for i in range(linhas):
+                for j in range(colunas):
+                        x,y=xy_espaco[i,j]
                         T[x][y]=1
         return np.array(T,dtype=int)
 
 
-def get_D(xy_space):
-        """Retorna a distribuicao do diagrama de cromaticidade para a imagem em x-y coordenadas(i.e histograma)
-
-         """
-        D=cv2.calcHist([xy_space], [0,1], None,[100,100],[0, 100,0,100])
+def gerar_D(xy_espaco):
+        """Retorna a distribuicao do diagrama de cromaticidade para a imagem em x-y coordenadas(i.e histograma)"""
+        D=cv2.calcHist([xy_espaco], [0,1], None,[100,100],[0, 100,0,100]) #gera histograma a partir do espaco xy
         return D.astype(int)
-
-
-
-
-def calcular_M_t(T,m,l):
-        """ O valor do momento da matriz T(x,y) para m e l
-            T - Matriz com os valores de T(x,y)
+        
+def calcular_momentos_t_d(matriz_td,m,l):
+        """ O valor do momento da matriz T(x,y) ou D(x,y)  para m e l
+            matriz_td - Matriz com os valores de T(x,y) ou D(x,y)
             m - momentos para x^m
             l- momentos para y^l
          """
-        result=0
+        resultado=0
         for x in range(100):
                 for y in range(100):
-                        result+= math.pow(x,m)*math.pow(y,l)*T[x,y]
+                        resultado+= math.pow(x,m)*math.pow(y,l)*matriz_td[x,y]
 
-        return result
+        return resultado
 
-
-def calcular_M_d(D,m,l):
-        """ O valor do momento da matriz D(x,y) para m e l
-            D - Matriz com os valores de D(x,y)
-            m - momentos para x^m
-            l- momentos para y^l
-         """
-        result=0
-        for x in range(100):
-                for y in range(100):
-                        result+= math.pow(x,m)*math.pow(y,l)*D[x,y]
-
-        return result
 
 
 
@@ -134,28 +114,30 @@ def gerar_combinacao(qtdMax):
                         break
         return combinacao
 
-def descrever(filename,qtdT=5,qtdD=5):
+def descrever(caminho_imagem,qtdT=5,qtdD=5):
         """ Descreve uma imagem dependendo da quantidade de Momentos para T-type e para D-type
-            filename - path da imagem
-            qtdT - quantidade de momentos para T-type
-            qtdD- quantidade de momentos para D-type
+            caminho_imagem - path da imagem
+            qtdT - quantidade de momentos para T-type, 5 por padrao
+            qtdD- quantidade de momentos para D-type, 5 por padrao
          """
-        results=[]
-        xy_space=get_xy_space(filename)
-        T=get_T(xy_space)
-        D=get_D(xy_space)
+        vetor_caracteristicas=[]
+        xy_espaco=gerar_xy_coordenadas(caminho_imagem)
+        T=gerar_T(xy_espaco) #gerar T-type
+        D=gerar_D(xy_espaco) #gerar D-type
 
-        combinacaoT=gerar_combinacao(qtdT)
+        combinacaoT=gerar_combinacao(qtdT) #gerar combinacao de momentos para T-type
+        #calcular os momentos em T-type
         for (p,q) in combinacaoT:
-                result=calcular_M_t(T,p,q)
-                results.append(result)
+                resultado=calcular_momentos_t_d(T,p,q)
+                vetor_caracteristicas.append(resultado)
 
-        combinacaoD=gerar_combinacao(qtdD)
+        combinacaoD=gerar_combinacao(qtdD)#gerar combinacao de momentos para D-type
+        #calcular os momentos em T-type
         for (p,q) in combinacaoD:
-                result=calcular_M_d(T,p,q)
-                results.append(result)
+                resultado=calcular_momentos_t_d(D,p,q)
+                vetor_caracteristicas.append(resultado)
 
-        return results
+        return vetor_caracteristicas
 
 
 

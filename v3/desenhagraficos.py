@@ -48,7 +48,7 @@ def gerarMatrizConfusao(preds,titulo,nome=""):
     plt.yticks(np.arange(0,5), ['Caretta', 'Chelonia','Dermo','Eretmo','Lepido'])
     plt.ylabel('Real')
     plt.xlabel('Classificada')
-    plt.title('Matriz de Confusao:'+titulo)
+    plt.title(titulo)
 
     #plt.xticks(range(width), alphabet[:width])
     #plt.yticks(range(height), alphabet[:height])
