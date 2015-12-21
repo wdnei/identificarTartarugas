@@ -105,7 +105,7 @@ for index in range(5):
     #calcular Recall
     recall=verdadeiro_positivo/(verdadeiro_positivo+falso_negativo*1.0)
     #calcular F-measure
-    fmeasure=2*((precision*recall)/(precision+recall*0.0000000000000000001))
+    fmeasure=(float(2*precision*recall)/(precision+recall*0.0000000000000000001))
     #calcular Accuracy
     accuracy=(verdadeiro_positivo+verdadeiro_negativo)/(verdadeiro_positivo+falso_positivo+verdadeiro_negativo+falso_negativo*1.0)
     #salvar valores em arquivo

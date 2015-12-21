@@ -13,42 +13,44 @@ import HistogramaColoridoRGB
 
 
 class StatModel(object):
-    '''parent class - starting point to add abstraction'''
+    '''classe para adicionar abstracao'''
     def load(self, fn):
         self.model.load(fn)
     def save(self, fn):
         self.model.save(fn)
 
 
-class SVM(StatModel):
-    '''wrapper for OpenCV SimpleVectorMachine algorithm'''
-    def __init__(self):
-        self.model = cv2.SVM()
-
-    def train(self, samples, responses):
-        #setting algorithm parameters
-        params = dict( kernel_type = cv2.SVM_LINEAR,
-                       svm_type = cv2.SVM_C_SVC,
-                       C = 1 )
-        self.model.train(samples, responses, params = params)
-        
-    def predict(self, samples):
-        return np.int32( [self.model.predict(s) for s in samples])
-
-
 
 class KNN(StatModel):
-    '''wrapper for OpenCV KNN algorithm'''
+    '''Classe para o classificador KNN do OpenCV'''
     def __init__(self):
         self.model = cv2.KNearest()
 
-    def train(self, samples, responses):
-        #setting algorithm parameters
-        self.model.train(samples, responses)
+    def train(self, trainingSet, labels):
+        #configurando os classificador - fase de treinamento
+        self.model.train(trainingSet, labels)
 
+    def predict(self, testSet):
+        ret, results, neighbours ,dist = self.model.find_nearest(testSet, 3) # fase de teste para k=3
+        return results.reshape(1,len(results))[0].astype(int) #formatando resultados ex:[0,1,3]
+
+class SVM(StatModel):
+    '''Classe para o classificador SVM do OpenCV'''
+    def __init__(self):
+        self.model = cv2.SVM()
+
+    def train(self, trainingSet, labels):
+        #configurando os classificador - fase de treinamento
+        params = dict( kernel_type = cv2.SVM_LINEAR,
+                       svm_type = cv2.SVM_C_SVC,
+                       C = 1 )
+        self.model.train(trainingSet, labels, params = params)
+        
     def predict(self, samples):
-        ret, results, neighbours ,dist = self.model.find_nearest(samples, 3)
-        return results.reshape(1,len(results))[0].astype(int)
+        return np.int32( [self.model.predict(s) for s in samples]) #fase de teste e formatando resultados ex:[0,1,3]
+
+
+
         
 
 def carregar_imagens(listSet,metodo):
