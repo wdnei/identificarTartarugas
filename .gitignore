@@ -9,6 +9,8 @@
 *.ear
 *.pyc
 *.py~
+*.txt~
+*.*~
 
 *.dmp
 *.p
