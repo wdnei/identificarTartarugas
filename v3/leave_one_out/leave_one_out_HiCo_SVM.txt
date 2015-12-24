@@ -906,30 +906,30 @@ Tabela Confusao:[verdadeiro_positivo,falso_positivo,verdadeiro_negativo,falso_ne
 carettacaretta:[12, 21, 51, 6]
 Precision:0.36
 Recall:0.67
-F-measure:0.468349515 
+F-measure:0.47
 Accuracy:0.70
 
 cheloniamydas:[7, 4, 68, 11]
 Precision:0.64
 Recall:0.39
-F-measure:0.484660194 
+F-measure:0.48
 Accuracy:0.83
 
 dermochelyscoriacea:[12, 8, 64, 6]
 Precision:0.60
 Recall:0.67
-F-measure:0.633070866 
+F-measure:0.63
 Accuracy:0.84
 
 eretmochelysimbricata:[10, 3, 69, 8]
 Precision:0.77
 Recall:0.56
-F-measure:0.648421053 
+F-measure:0.65
 Accuracy:0.88
 
 lepidochelysolivacea:[3, 10, 62, 15]
 Precision:0.23
 Recall:0.17
-F-measure:0.1955 
+F-measure:0.19
 Accuracy:0.72
 
