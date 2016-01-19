@@ -1,5 +1,4 @@
 """
-    Leave One Out
     Arquivo avaliacao do metodos usando validacao cruzada  e o classificador knn ou svm
 """
 from random import shuffle
@@ -41,8 +40,6 @@ for filename in glob.glob("samples/*/*_[0-9]_[0-9].jpg"):
     allSet.append(filename)
     #count=count+1
 
-#allSet=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
-#allSet=allSet[0:2]
 metodo=int(args["metodo"])
 tipoClassificador=int(args["classificador"])
 rest=fold=int(args["fold"])
@@ -105,7 +102,7 @@ for index in range(5):
     #calcular Recall
     recall=verdadeiro_positivo/(verdadeiro_positivo+falso_negativo*1.0)
     #calcular F-measure
-    fmeasure=(float(2*precision*recall)/(precision+recall*0.0000000000000000001))
+    fmeasure=(float(2*precision*recall)/(precision+recall+0.0000000000000000001))
     #calcular Accuracy
     accuracy=(verdadeiro_positivo+verdadeiro_negativo)/(verdadeiro_positivo+falso_positivo+verdadeiro_negativo+falso_negativo*1.0)
     #salvar valores em arquivo
