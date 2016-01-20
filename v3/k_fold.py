@@ -10,7 +10,6 @@ import glob
 import argparse
 import webbrowser
 
-
 import os
 
 import MomentosCromaticidade
@@ -121,3 +120,14 @@ if(titulo==None):
     titulo="K-fold "+str(fold)+ ": "+( "Mo. de Cromaticidade" if metodo==1 else "Histograma Colorido")+"-> "+( "KNN" if tipoClassificador==1 else "SVM")
 
 desenhagraficos.gerarMatrizConfusao(matrizConfusao,titulo,nomeArquivo)
+
+
+
+
+
+
+
+
+
+
+

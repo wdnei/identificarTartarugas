@@ -1,4 +1,4 @@
-"""Classificador
+""" Classificador
     Classe responsavel por montar os classificadores a serem usados usando a a biblioteca OpenCV
 """
 from random import shuffle
@@ -53,28 +53,26 @@ class SVM(StatModel):
 
         
 
-def carregar_imagens(listSet,metodo):
+def carregar_imagens(caminhoImagens,metodo):
+    '''Funcao responsavel por ler as imagens e retornar seus respectivos vetores de caracteristicas e classes'''
     dictClasses={'carettacaretta': 0, 'cheloniamydas': 1,'dermochelyscoriacea':2,'eretmochelysimbricata':3,'lepidochelysolivacea':4}
-    loadListSet=[]
-    loadListLabel=[]
+    vecCaracList=[]#Vetor com os vetores de caracteristicas
+    classeList=[]#Vetor contendo os nomes das classes dos respectivos vetores de caracteristicas
     descritor=None
+    #escolha do metodo de extracao de caracteristicas
     if(metodo==1):
         descritor=MomentosCromaticidade
     else:
         descritor=HistogramaColoridoRGB
-    for filename in listSet:
+    for filename in caminhoImagens:
         #Descreve a imagem
-        classe=filename.split(os.sep)[-2]
+        classe=filename.split(os.sep)[-2] #recupera a classe de acordo com o nome da pasta onde esta a imagem
         vecCarac = descritor.descrever(filename)
-        #adiciona o nome da classe ao fim para comparar posteriormente
-        #print(classe +"\n")
-        #print vecCarac
-        loadListSet.append(vecCarac)
-        loadListLabel.append(dictClasses[classe])
-        #print np.array(vecCarac, dtype=np.float32)
+        vecCaracList.append(vecCarac)
+        classeList.append(dictClasses[classe])
 
-
-    return (np.array(loadListSet, dtype=np.float32),np.array(loadListLabel, dtype=np.int32))
+    #retornar usando o array do Numpy para facilitar o uso com a biblioteca do OpenCV
+    return (np.array(vecCaracList, dtype=np.float32),np.array(classeList, dtype=np.int32))
 
 
 
@@ -82,12 +80,13 @@ def carregar_imagens(listSet,metodo):
 
 def k_fold_cross_validation(items, k, randomize=False):
     """Funcao responsavel por gerar K-fold(dobramentos) separando em conjunto de treinamento e teste"""
+    #Gerar em ordem aleatoria
     if randomize:
         items = list(items)
         shuffle(items)
 
     slices = [items[i::k] for i in xrange(k)]
-
+    #Gerar os conjunto de treinamento(training) e de teste(validation)
     for i in xrange(k):
         validation = slices[i]
         training = [item
@@ -139,3 +138,19 @@ def gerarTabelaConfusao(preds):
 
     return resultados
 
+
+def validacao_cruzada_k_fold(k,tipoDescritor,tipoClassificador,caminhosImagensBase):
+    '''Funcao base para a validacao cruzada K-fold, onde é passado, o numero de folds(k),o tipo de descritor
+    (1-Momento de Cromaticidade 2-Histogramas coloridos), o tipo de classificador (1-KNN 2-SVM)
+    e uma lista contendo o caminho das imagens, sendo estas imagens dividas em pasta com suas respectivas classes'''
+    #gerar k-fold e testar imagens no classificador
+    resultado=None
+    for imagensTreino,imagensTeste in k_fold_cross_validation(caminhosImagensBase, k, True):
+        #carregar imagens de treino
+        vetorTreinamento,classesTreinamento=carregar_imagens(imagensTreino,tipoDescritor)
+        #carregar imagens de teste
+        vetorTeste,classesTeste=carregar_imagens(imagensTeste,tipoDescritor)
+        #testar classificador
+        resultado=testar(vetorTreinamento,classesTreinamento,vetorTeste,tipoClassificador)
+    
+    return resultado
